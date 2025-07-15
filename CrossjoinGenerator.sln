@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrossjoinGenerator", "CrossjoinGenerator\CrossjoinGenerator.csproj", "{D5990FC4-FD04-4ADF-B328-CDE0CBF87208}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "Util\Util.csproj", "{5371021B-6B34-4C03-8510-2F26F78A1415}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5990FC4-FD04-4ADF-B328-CDE0CBF87208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5990FC4-FD04-4ADF-B328-CDE0CBF87208}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5990FC4-FD04-4ADF-B328-CDE0CBF87208}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5990FC4-FD04-4ADF-B328-CDE0CBF87208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5371021B-6B34-4C03-8510-2F26F78A1415}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5371021B-6B34-4C03-8510-2F26F78A1415}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5371021B-6B34-4C03-8510-2F26F78A1415}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5371021B-6B34-4C03-8510-2F26F78A1415}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B5395291-E251-4320-BA33-BC5AC1BBF33F}
+	EndGlobalSection
+EndGlobal
