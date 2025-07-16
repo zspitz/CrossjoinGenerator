@@ -1,6 +1,4 @@
-﻿using ADODB;
-using Ookii.Dialogs.Wpf;
-using System.Data;
+﻿using Ookii.Dialogs.Wpf;
 using System.Windows;
 using Util;
 using static CrossjoinGenerator.ExcelFunctions;
@@ -12,41 +10,43 @@ public partial class MainWindow : Window {
     public MainWindow() {
         InitializeComponent();
 
-        chooseFile.Click += (s, e) => {
-            var dlg = new VistaOpenFileDialog {
-                Filter = "קבצי Excel|*.xlsx"
-            };
-            if ((bool)dlg.ShowDialog(this)!) {
-                filename.Text = dlg.FileName;
-            }
-        };
+        DataContext = new MainViewModel();
 
-        start.Click += (s, e) => {
-            message.Text = "";
-            invalidData.ItemsSource = null;
+        //chooseFile.Click += (s, e) => {
+        //    var dlg = new VistaOpenFileDialog {
+        //        Filter = "קבצי Excel|*.xlsx"
+        //    };
+        //    if ((bool)dlg.ShowDialog(this)!) {
+        //        filename.Text = dlg.FileName;
+        //    }
+        //};
 
-            Filename = filename.Text;
+        //start.Click += (s, e) => {
+        //    message.Text = "";
+        //    invalidData.ItemsSource = null;
 
-            var msg1 = testSQL();
-            if (!msg1.IsNullOrWhitespace()) {
-                message.Text = msg1;
-                return;
-            }
+        //    Filename = filename.Text;
 
-            var (msg, sqlFrom) = validate();
-            if (!msg.IsNullOrWhitespace()) {
-                message.Text = msg;
-                var rst = GetRst($"SELECT * {sqlFrom}");
-                var dt = recordsetToDataTable(rst);
-                ReleaseRst(ref rst);
-                invalidData.ItemsSource = dt.DefaultView;
-                return;
-            }
+        //    var msg1 = testSQL();
+        //    if (!msg1.IsNullOrWhitespace()) {
+        //        message.Text = msg1;
+        //        return;
+        //    }
 
-            writeFinal();
-        };
+        //    var (msg, sqlFrom) = validate();
+        //    if (!msg.IsNullOrWhitespace()) {
+        //        message.Text = msg;
+        //        var rst = GetRst($"SELECT * {sqlFrom}");
+        //        var dt = rst.ToDataTable();
+        //        ReleaseRst(ref rst);
+        //        invalidData.ItemsSource = dt.DefaultView;
+        //        return;
+        //    }
 
-        openFile.Click += (s,e) => OpenBook(filename.Text);
+        //    writeFinal();
+        //};
+
+        //openFile.Click += (s,e) => OpenBook(filename.Text);
     }
 
     private readonly string sqlFrom =
@@ -116,32 +116,35 @@ INNER JOIN [Items$] AS Items ON Grades.NewGrade = Items.NewGrade";
             "FROM [Students$] WHERE Name1 IS NULL AND Name2 IS NULL AND CurrentGrade IS NOT NULL"
         ),
 
-        //(
-        //    "תלמידים עם כיתה נוכחית לא תקינה",
-        //    @"
-        //        FROM [Students$] AS Students
-        //        LEFT JOIN [Grades$] AS Grades ON Students.CurrentGrade = Grades.CurrentGrade
-        //        WHERE Grades.CurrentGrade IS NULL
-        //    "
-        //),
+        // warning
+        (
+            "תלמידים עם כיתה נוכחית לא תקינה",
+            @"
+                FROM [Students$] AS Students
+                LEFT JOIN [Grades$] AS Grades ON Students.CurrentGrade = Grades.CurrentGrade
+                WHERE Grades.CurrentGrade IS NULL
+            "
+        ),
 
-        //(
-        //    "כיתה ללא תלמידים",
-        //    @"
-        //        FROM [Grades$] AS Grades
-        //        LEFT JOIN [Students$] AS Students ON Grades.CurrentGrade = Students.CurrentGrade
-        //        WHERE Students.CurrentGrade IS NULL
-        //    "
-        //),
+        // warning
+        (
+            "כיתה ללא תלמידים",
+            @"
+                FROM [Grades$] AS Grades
+                LEFT JOIN [Students$] AS Students ON Grades.CurrentGrade = Students.CurrentGrade
+                WHERE Students.CurrentGrade IS NULL
+            "
+        ),
 
-        //(
-        //    "כתה ללא פריטים",
-        //    @"
-        //        FROM [Grades$] AS Grades
-        //        LEFT JOIN [Items$] AS Items ON Grades.NewGrade = Items.NewGrade
-        //        WHERE Items.NewGrade IS NULL
-        //    "
-        //),
+        // warning
+        (
+            "כתה ללא פריטים",
+            @"
+                FROM [Grades$] AS Grades
+                LEFT JOIN [Items$] AS Items ON Grades.NewGrade = Items.NewGrade
+                WHERE Items.NewGrade IS NULL
+            "
+        ),
 
         (
             "פריטים עם כיתה לא תקין",
@@ -169,28 +172,6 @@ INNER JOIN [Items$] AS Items ON Grades.NewGrade = Items.NewGrade";
         int count = rst.Fields[0].Value;
         ReleaseRst(ref rst);
         return count == 0;
-    }
-
-    private static DataTable recordsetToDataTable(Recordset rs) {
-        var dt = new DataTable();
-
-        for (var i = 0; i < rs.Fields.Count; i++) {
-            var field = rs.Fields[i];
-            dt.Columns.Add(field.Name.Replace('.', '~'), typeof(object));
-        }
-
-        // Add rows
-        while (!rs.EOF) {
-            var row = dt.NewRow();
-            for (var i = 0; i < rs.Fields.Count; i++) {
-                row[i] = rs.Fields[i].Value;
-            }
-
-            dt.Rows.Add(row);
-            rs.MoveNext();
-        }
-
-        return dt;
     }
 
     private void writeFinal() {

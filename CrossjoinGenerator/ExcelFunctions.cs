@@ -1,13 +1,15 @@
 ﻿using ADODB;
 using NetOffice.ExcelApi;
+using Util;
 
 namespace CrossjoinGenerator; 
 public static class ExcelFunctions {
+    private static Application getApp() => new Application {
+        Visible = true,
+        UserControl = true
+    };
     public static string WriteFinal(Recordset rst, string filename) {
-        using var excelApp = new Application {
-            Visible = true,
-            UserControl = true
-        };
+        using var excelApp = getApp();
 
         Workbook book;
         try {
@@ -32,7 +34,7 @@ public static class ExcelFunctions {
         sheet.DisplayRightToLeft = true;
         sheet.Range("A1").CopyFromRecordset(rst);
         rst.Close();
-        rst = null;
+        rst = null!;
 
         sheet.Rows[1].Insert();
         sheet.Range("A1:I1").Value = new object[,] {
@@ -48,12 +50,26 @@ public static class ExcelFunctions {
     }
 
     public static void OpenBook(string filename) {
-        using var excelApp = new Application {
-            Visible = true,
-            UserControl = true
-        };
+        using var excelApp = getApp();
         try {
             excelApp.Workbooks.Open(filename,false, false);
         } catch {}
+    }
+
+    public static readonly Dictionary<string, List<string>> BookStructure = new() {
+        {"Students", ["Name1","Name2","CurrentGrade"] },
+        {"Grades", ["CurrentGrade","NewGrade"] },
+        {"Items", ["NewGrade","Item","Price","Type","Order"] }
+    };
+
+    public static void GenerateTemplate() {
+        using var excelApp = getApp();
+        var book = excelApp.Workbooks.Add();
+        BookStructure.ForEach((kvp, index) => {
+            var (sheetname, fields) = kvp;
+            var sheet = (Worksheet)book.Worksheets[index];
+            sheet.Name = sheetname;
+            sheet.Range("A1").Value2 = fields.To2DRow();
+        });
     }
 }

@@ -5,62 +5,55 @@
         xmlns:util="clr-namespace:Util;assembly=Util"
         Title="MainWindow"
         FlowDirection="RightToLeft"
+        Width="600"
 >
     <Window.Resources>
         <util:TruthyBooleanConverter x:Key="TruthyBooleanConverter" />
     </Window.Resources>
     
-    <util:AutoGrid Columns="*,*" Rows="Auto,Auto,*" Orientation="Vertical" ChildMargin="10">
-        
+    <util:AutoGrid Columns="*" Rows="Auto,Auto,Auto,*" Orientation="Vertical" ChildMargin="5">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Margin="0,0,0,5">1. בחרי קובץ קלט, הבנוי בהתאם להנחיות</TextBlock>
-            <Button DockPanel.Dock="Right" Name="openFile" IsEnabled="{Binding Text, ElementName=filename, Converter={StaticResource TruthyBooleanConverter}}">פתח קובץ</Button>
-            <Button Name="chooseFile">בחר קובץ</Button>
+            <TextBlock Margin="0,0,5,0">קובץ:</TextBlock>
             <TextBox FlowDirection="LeftToRight" Name="filename" />
         </DockPanel>
-        <Button Padding="20" IsEnabled="{Binding Text, ElementName=filename, Converter={StaticResource TruthyBooleanConverter}}" Name="start">התחלה</Button>
-        <TextBlock>Pass/Fail</TextBlock>
+        <UniformGrid Columns="4" Rows="1">
+            <Button>יצירת תבנית</Button>
+            <Button Name="chooseFile">בחר נתיב הקובץ</Button>
+            <Button Name="openFile" IsEnabled="{Binding Text, ElementName=filename, Converter={StaticResource TruthyBooleanConverter}}">פתח קובץ לעריכה</Button>
+            <Button Name="start" IsEnabled="{Binding Text, ElementName=filename, Converter={StaticResource TruthyBooleanConverter}}">עיבוד קובץ</Button>
+        </UniformGrid>
 
-        <TabControl Grid.RowSpan="3">
-            <TabItem Header="הוראות">
-                <StackPanel>
-                    <Border BorderThickness="0,0,0,1" BorderBrush="Black">
-                        <TextBlock xml:space="preserve">
-מבנה קובץ ה-Excel:
-                    
-דף בשם Grades המכיל את העמודות הבאות:
+        <ProgressBar Name="progressBar" Height="20" VerticalAlignment="Top" />
+
+        <TabControl>
+            
+            <TabItem Header="מבנה קובץ ה-Excel">
+                <TextBlock xml:space="preserve">   
+גליון בשם Grades המכיל את העמודות הבאות:
 CurrentGrade - הכיתה (א1, ד2 וכו')
 NewGrade - הכיתה אליו התלמיד עולה
 
-דף בשם Students המכיל את העמודות הבאות:
+גליון בשם Students המכיל את העמודות הבאות:
 Name1 - שם משפחה
 Name2 - שם פרטי
 CurrentGrade - כיתה נוכחית (חייב להיות ערך מתוך העמודה CurrentGrade בדף Grades)
 
-דף בשם Items המכיל את העמודות הבאות:
+גליון בשם Items המכיל את העמודות הבאות:
 NewGrade - הכיתה של שנה הבאה (חייב להיות ערך מתוך העמודה NewGrade בדף Grade)
 Item - תאור הפריט
 Price - מחיר
 Type - סוג
 Order - סדר הפריט בתוך הטופס
-                        </TextBlock>
-                    </Border>
-                    <TextBlock xml:space="preserve">
-יש לבחור קובץ, וללחוץ על הכפתור התחלה
-הקובץ יעבור כמה בדיקות.
-במקרה ומשהו לא תקין, תופיע הודעה בלשונית "תוצאות בידקות" עם הנתונים הלא-תקינים
-אם הכל עבר כשורה, קוץ ה-Excel ייפתח עם עמוד המילוי מייוצר
-                    </TextBlock>
-
-                </StackPanel>
+                </TextBlock>
             </TabItem>
-            <TabItem Header="תוצאות בדיקות">
+
+            <TabItem Header="בדיקת נתונים">
                 <DockPanel>
                     <TextBlock Name="message" Foreground="OrangeRed" DockPanel.Dock="Top" />
                     <DataGrid Name="invalidData" />
                 </DockPanel>
             </TabItem>
+            
         </TabControl>
-        
     </util:AutoGrid>
 </Window>
