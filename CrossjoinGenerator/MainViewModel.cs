@@ -1,4 +1,5 @@
 ﻿using Ookii.Dialogs.Wpf;
+using System.Data.SqlTypes;
 using System.Windows;
 using Util;
 using static CrossjoinGenerator.ExcelFunctions;
@@ -9,16 +10,19 @@ using static Util.Functions;
 namespace CrossjoinGenerator;
 
 public class MainViewModel : ViewModelBase {
-    public RelayCommand GenerateTemplate = new(o => GenerateTemplate());
+    public RelayCommand GenerateTemplate { get; } = new(o => GenerateTemplate());
 
-    public RelayCommand ChooseFile;
-    public RelayCommand ProcessFile;
-    public RelayCommand EditFile;
+    public RelayCommand ChooseFile { get; }
+    public RelayCommand ProcessFile { get; }
+    public RelayCommand EditFile { get; }
 
     private string filename = "";
     public string Filename {
         get => filename;
-        set => NotifyChanged(ref filename, value);
+        set {
+            NotifyChanged(ref filename, value);
+            RecordsetFunctions.Filename = value;
+        }
     }
 
     private bool isRunning = false;
@@ -44,6 +48,14 @@ public class MainViewModel : ViewModelBase {
         get => errorMessage;
         set => NotifyChanged(ref errorMessage, value);
     }
+
+    private double progressValue = 0;
+    public double ProgressValue {
+        get => progressValue;
+        set => NotifyChanged(ref progressValue, value);
+    }
+
+    public double MaxProgess => sqlTests.Length + DataChecks.Count + 1;
 
     public List<DataCheck> DataChecks { get; } = [
         new(
@@ -148,6 +160,7 @@ public class MainViewModel : ViewModelBase {
     private void processFile(object? o) {
         try {
             ProcessState = Success;
+            ProgressValue = 0;
             IsRunning = true;
 
             foreach (var (sql, message) in sqlTests) {
@@ -158,6 +171,7 @@ public class MainViewModel : ViewModelBase {
                     ErrorMessage = ex.Message;
                     return;
                 }
+                ProgressValue += 1;
             }
 
             foreach (var dataCheck in DataChecks) {
@@ -172,6 +186,7 @@ public class MainViewModel : ViewModelBase {
                     ErrorMessage = ex.Message;
                     return;
                 }
+                ProgressValue += 1;
             }
 
             var sqlFinal = $@"
@@ -182,6 +197,7 @@ ORDER BY Students.CurrentGrade, Grades.NewGrade, Students.Name1, Students.Name2,
             var rst = GetRst(sqlFinal);
             WriteFinal(rst, Filename);
             ReleaseRst(ref rst);
+            ProgressValue += 1;
 
         } catch (Exception ex) {
             MessageBox.Show(ex.Message);

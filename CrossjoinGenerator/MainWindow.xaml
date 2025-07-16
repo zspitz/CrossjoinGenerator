@@ -1,11 +1,15 @@
 ﻿<Window x:Class="CrossjoinGenerator.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CrossjoinGenerator"
         xmlns:util="clr-namespace:Util;assembly=Util"
         Title="MainWindow"
         FlowDirection="RightToLeft"
         Width="600"
+        d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
+        mc:Ignorable="d"
 >
     <Window.Resources>
         <util:TruthyBooleanConverter x:Key="TruthyBooleanConverter" />
@@ -13,17 +17,19 @@
     
     <util:AutoGrid Columns="*" Rows="Auto,Auto,Auto,*" Orientation="Vertical" ChildMargin="5">
         <DockPanel>
-            <TextBlock Margin="0,0,5,0">קובץ:</TextBlock>
-            <TextBox FlowDirection="LeftToRight" Name="filename" />
+            <TextBlock >קובץ:</TextBlock>
+            <Border BorderBrush="Black" BorderThickness="1" Margin="0,0,5,0">
+                <TextBlock FlowDirection="LeftToRight" Text="{Binding Filename}" />
+            </Border>
         </DockPanel>
         <UniformGrid Columns="4" Rows="1">
-            <Button>יצירת תבנית</Button>
-            <Button Name="chooseFile">בחר נתיב הקובץ</Button>
-            <Button Name="openFile" IsEnabled="{Binding Text, ElementName=filename, Converter={StaticResource TruthyBooleanConverter}}">פתח קובץ לעריכה</Button>
-            <Button Name="start" IsEnabled="{Binding Text, ElementName=filename, Converter={StaticResource TruthyBooleanConverter}}">עיבוד קובץ</Button>
+            <Button Command="{Binding GenerateTemplate}">יצירת תבנית</Button>
+            <Button Command="{Binding ChooseFile}">בחר קובץ</Button>
+            <Button Command="{Binding EditFile}">פתח קובץ לעריכה</Button>
+            <Button Command="{Binding ProcessFile}">עיבוד קובץ</Button>
         </UniformGrid>
 
-        <ProgressBar Name="progressBar" Height="20" VerticalAlignment="Top" />
+        <ProgressBar Height="10" VerticalAlignment="Top" Maximum="{Binding MaxProgess}" Value="{Binding ProgressValue}" />
 
         <TabControl>
             
