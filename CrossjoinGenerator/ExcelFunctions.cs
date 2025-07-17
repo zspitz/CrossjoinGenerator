@@ -1,10 +1,11 @@
 ﻿using ADODB;
 using NetOffice.ExcelApi;
+using System.Diagnostics;
 using Util;
 
 namespace CrossjoinGenerator;
 public static class ExcelFunctions {
-    private static Application getApp() => new Application {
+    private static Application getApp() => new() {
         Visible = true,
         UserControl = true
     };
@@ -21,8 +22,9 @@ public static class ExcelFunctions {
         // Wrapping this in a separate method to ensure the COM references are released, enabling deletion
         forceDeleteWorkheet(book);
 
+        ((Worksheet)book.Worksheets[1]).Activate();
+
         var sheet = (Worksheet)book.Worksheets.Add();
-        sheet.Name = "Final";
         sheet.DisplayRightToLeft = true;
         sheet.Range("A1").CopyFromRecordset(rst);
         rst.Close();
@@ -38,21 +40,30 @@ public static class ExcelFunctions {
         sheet.Range($"I2:I{lastRow}").Formula = "=G2*H2";
 
         sheet.Columns["A:I"].AutoFit();
+
+        // This must be last; give a chance for the old Final sheet to be deleted
+        sheet.Name = "Final";
+
         return "";
     }
 
     private static void forceDeleteWorkheet(Workbook book) {
+        Worksheet? sheet = null;
+        Application? app = null;
         try {
-            using var sheet = (Worksheet)book.Worksheets["Final"];
-            using var app = book.Application;
+            sheet = (Worksheet)book.Worksheets["Final"];
+            app = book.Application;
             var displayAlerts = app.DisplayAlerts;
             app.DisplayAlerts = false;
             sheet.Delete();
             app.DisplayAlerts = displayAlerts;
-            app.DisposeChildInstances();
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        } catch { }
+        } catch (Exception ex) {
+            Debug.WriteLine($"Error deleting sheet: {ex.Message}");
+        } finally {
+            sheet?.Dispose();
+            app?.Dispose();
+            book.DisposeChildInstances();
+        }
     }
 
     public static void OpenBook(string filename) {

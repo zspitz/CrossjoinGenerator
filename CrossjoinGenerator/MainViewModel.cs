@@ -157,7 +157,7 @@ public class MainViewModel : ViewModelBase {
         return ret.ToArray();
     });
 
-    private void processFile(object? o) {
+    private async void processFile(object? o) {
         try {
             ProcessState = Success;
             ProgressValue = 0;
@@ -165,7 +165,7 @@ public class MainViewModel : ViewModelBase {
 
             foreach (var (sql, message) in sqlTests) {
                 try {
-                    TestSingleSql(sql);
+                    await TestSingleSql(sql);
                 } catch (Exception ex) {
                     ProcessState = Error;
                     ErrorMessage = ex.Message;
@@ -177,10 +177,11 @@ public class MainViewModel : ViewModelBase {
             foreach (var dataCheck in DataChecks) {
                 var (message, sql, isError) = dataCheck;
                 try {
-                    var dt = GetDataTable(sql);
+                    var dt = await GetDataTable(sql);
                     dataCheck.Data = dt;
-                    if (dt.Rows.Count == 0) { continue; }
-                    ProcessState = isError ? Warning : Error;
+                    if (dt.Rows.Count != 0) {
+                        ProcessState = isError ? Warning : Error;
+                    }
                 } catch (Exception ex) {
                     ProcessState = Error;
                     ErrorMessage = ex.Message;
@@ -194,9 +195,11 @@ SELECT Students.Name1 & "" "" & Students.Name2, Students.CurrentGrade, Grades.Ne
 {sqlFrom}
 ORDER BY Students.CurrentGrade, Grades.NewGrade, Students.Name1, Students.Name2, Items.Order";
 
-            var rst = GetRst(sqlFinal);
-            WriteFinal(rst, Filename);
-            ReleaseRst(ref rst);
+            await Task.Run(() => {
+                var rst = GetRst(sqlFinal);
+                WriteFinal(rst, Filename);
+                ReleaseRst(ref rst);
+            });
             ProgressValue += 1;
 
         } catch (Exception ex) {

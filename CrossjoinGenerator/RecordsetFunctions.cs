@@ -18,10 +18,11 @@ public static class RecordsetFunctions {
         return rst;
     }
 
-    public static void TestSingleSql(string sql) {
-        var rst = GetRst(sql);
-        ReleaseRst(ref rst);
-    }
+    public static Task TestSingleSql(string sql) =>
+        Task.Run(() => {
+            var rst = GetRst(sql);
+            ReleaseRst(ref rst);
+        });
 
     public static void ReleaseRst(ref Recordset rst) {
         if (rst is null) { return; }
@@ -32,28 +33,29 @@ public static class RecordsetFunctions {
         rst = null!;
     }
 
-    public static DataTable GetDataTable(string sql) {
-        var dt = new DataTable();
-        var rs = GetRst(sql);
+    public static Task<DataTable> GetDataTable(string sql) =>
+        Task.Run(() => {
+            var dt = new DataTable();
+            var rs = GetRst(sql);
 
-        for (var i = 0; i < rs.Fields.Count; i++) {
-            var field = rs.Fields[i];
-            dt.Columns.Add(field.Name.Replace('.', '~'), typeof(object));
-        }
-
-        // Add rows
-        while (!rs.EOF) {
-            var row = dt.NewRow();
             for (var i = 0; i < rs.Fields.Count; i++) {
-                row[i] = rs.Fields[i].Value;
+                var field = rs.Fields[i];
+                dt.Columns.Add(field.Name.Replace('.', '~'), typeof(object));
             }
 
-            dt.Rows.Add(row);
-            rs.MoveNext();
-        }
+            // Add rows
+            while (!rs.EOF) {
+                var row = dt.NewRow();
+                for (var i = 0; i < rs.Fields.Count; i++) {
+                    row[i] = rs.Fields[i].Value;
+                }
 
-        ReleaseRst(ref rs);
+                dt.Rows.Add(row);
+                rs.MoveNext();
+            }
 
-        return dt;
-    }
+            ReleaseRst(ref rs);
+
+            return dt;
+        });
 }
