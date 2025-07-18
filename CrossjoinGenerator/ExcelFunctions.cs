@@ -19,8 +19,7 @@ public static class ExcelFunctions {
             return "Book not found";
         }
 
-        // Wrapping this in a separate method to ensure the COM references are released, enabling deletion
-        forceDeleteWorkheet(book);
+        Thread.Sleep(1000);
 
         ((Worksheet)book.Worksheets[1]).Activate();
 
@@ -41,29 +40,9 @@ public static class ExcelFunctions {
 
         sheet.Columns["A:I"].AutoFit();
 
-        // This must be last; give a chance for the old Final sheet to be deleted
-        sheet.Name = "Final";
+        sheet.Name = $"Final {DateTime.Now:yyyy-MM-dd HH-mm-ss}";
 
         return "";
-    }
-
-    private static void forceDeleteWorkheet(Workbook book) {
-        Worksheet? sheet = null;
-        Application? app = null;
-        try {
-            sheet = (Worksheet)book.Worksheets["Final"];
-            app = book.Application;
-            var displayAlerts = app.DisplayAlerts;
-            app.DisplayAlerts = false;
-            sheet.Delete();
-            app.DisplayAlerts = displayAlerts;
-        } catch (Exception ex) {
-            Debug.WriteLine($"Error deleting sheet: {ex.Message}");
-        } finally {
-            sheet?.Dispose();
-            app?.Dispose();
-            book.DisposeChildInstances();
-        }
     }
 
     public static void OpenBook(string filename) {
