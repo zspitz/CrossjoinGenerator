@@ -1,5 +1,4 @@
 ﻿using Ookii.Dialogs.Wpf;
-using System.Data.SqlTypes;
 using System.Windows;
 using Util;
 using static CrossjoinGenerator.ExcelFunctions;
@@ -43,10 +42,10 @@ public class MainViewModel : ViewModelBase {
         }
     }
 
-    private string errorMessage = "";
-    public string ErrorMessage {
-        get => errorMessage;
-        set => NotifyChanged(ref errorMessage, value);
+    private string progressCaption = "";
+    public string ProgressCaption {
+        get => progressCaption;
+        set => NotifyChanged(ref progressCaption, value);
     }
 
     private double progressValue = 0;
@@ -55,11 +54,17 @@ public class MainViewModel : ViewModelBase {
         set => NotifyChanged(ref progressValue, value);
     }
 
+    private string errorMessage = "...";
+    public string ErrorMessage {
+        get => errorMessage;
+        set => NotifyChanged(ref errorMessage, value);
+    }
+
     public double MaxProgess => sqlTests.Length + DataChecks.Count + 1;
 
     public List<DataCheck> DataChecks { get; } = [
         new(
-            "חסר שם התלמיד",
+            "תלמיד ללא שם",
             "SELECT * FROM [Students$] WHERE Name1 IS NULL AND Name2 IS NULL AND CurrentGrade IS NOT NULL",
             false
         ),
@@ -127,31 +132,35 @@ public class MainViewModel : ViewModelBase {
         INNER JOIN [Grades$] AS Grades ON Students.CurrentGrade = Grades.CurrentGrade)
         INNER JOIN [Items$] AS Items ON Grades.NewGrade = Items.NewGrade";
 
-    private static readonly (string, string)[] sqlTests = IIFE(() => {
-        var ret = new List<(string, string)>();
+    private static readonly (string, string, string)[] sqlTests = IIFE(() => {
+        var ret = new List<(string, string, string)>();
 
         // check if sheet exists
         BookStructure.SelectKVP((sheetname, _) => (
             $"SELECT * FROM [{sheetname}$]",
-            $"חסר גליון {sheetname} בקובץ Excel"
+            $"חסר גליון {sheetname} בקובץ Excel",
+            $"בדיקת קיום גליון ${sheetname}"
         )).AddRangeTo(ret);
 
         // check if field exists on sheet
         BookStructure.Flatten<string, string, List<string>>().SelectT((sheetname, fieldname) => (
             $"SELECT [{fieldname}] FROM [{sheetname}$]",
-            $"חסר עמודה {fieldname} בגליון {sheetname}"
+            $"חסר עמודה {fieldname} בגליון {sheetname}",
+            $"בדיקת קיום עמודה {fieldname} בגליון ${sheetname}"
         )).AddRangeTo(ret);
 
         // test the SQL from clause
         ret.Add((
             $"SELECT * {sqlFrom}",
-            "שגיאה בצירוף עמודות"
+            "שגיאה בצירוף גליונות",
+            "בדיקת צירוף גליונות"
         ));
 
         // test each field in the SQL from clause
         BookStructure.Flatten<string, string, List<string>>().SelectT((sheetname, fieldname) => (
             $"SELECT [{sheetname}.{fieldname}] {sqlFrom}",
-            $"לא מצליח לייבא עמודה {fieldname} מתוך גליון {sheetname}"
+            $"לא מצליח לייבא עמודה {fieldname} מתוך גליון {sheetname}",
+            $"בדיקת ייבוא עמודה {fieldname} מתוך גליון {sheetname}"
         )).AddRangeTo(ret);
 
         return ret.ToArray();
@@ -159,28 +168,36 @@ public class MainViewModel : ViewModelBase {
 
     private async void processFile(object? o) {
         try {
-            ProcessState = Success;
+            ProcessState = null;
+            ErrorMessage = "";
             ProgressValue = 0;
             IsRunning = true;
 
-            foreach (var (sql, message) in sqlTests) {
+            ProgressCaption = "בדיקות מבנה קובץ (1/3) ...";
+            foreach (var (sql, message, caption) in sqlTests) {
                 try {
                     await TestSingleSql(sql);
-                } catch (Exception ex) {
+                } catch {
                     ProcessState = Error;
-                    ErrorMessage = ex.Message;
+                    ErrorMessage = message;
                     return;
                 }
                 ProgressValue += 1;
             }
 
+            ProgressCaption = "בדיקות תקינות נתונים (2/3)";
             foreach (var dataCheck in DataChecks) {
-                var (message, sql, isError) = dataCheck;
+                var (description, sql, isError) = dataCheck;
                 try {
                     var dt = await GetDataTable(sql);
                     dataCheck.Data = dt;
                     if (dt.Rows.Count != 0) {
-                        ProcessState = isError ? Warning : Error;
+                        if (isError) {
+                            ProcessState = Error;
+                            ErrorMessage = description;
+                        } else {
+                            ProcessState = Warning;
+                        }
                     }
                 } catch (Exception ex) {
                     ProcessState = Error;
@@ -190,17 +207,21 @@ public class MainViewModel : ViewModelBase {
                 ProgressValue += 1;
             }
 
+            if (ProcessState == Error) { return; }
+
             var sqlFinal = $@"
 SELECT Students.Name1 & "" "" & Students.Name2, Students.CurrentGrade, Grades.NewGrade, Items.Type, Items.Order, Items.Item, Items.Price, NULL AS Qty
 {sqlFrom}
 ORDER BY Students.CurrentGrade, Grades.NewGrade, Students.Name1, Students.Name2, Items.Order";
 
-            await Task.Run(() => {
-                var rst = GetRst(sqlFinal);
-                WriteFinal(rst, Filename);
-                ReleaseRst(ref rst);
-            });
+            ProgressCaption = "עיבוד נתונים (3/3) ...";
+
+            var rst = GetRst(sqlFinal);
+            WriteFinal(rst, Filename);
+            ReleaseRst(ref rst);
             ProgressValue += 1;
+
+            ProgressCaption = "הקובץ מוכן!";
 
         } catch (Exception ex) {
             MessageBox.Show(ex.Message);
