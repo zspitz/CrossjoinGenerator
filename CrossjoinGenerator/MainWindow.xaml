@@ -70,6 +70,11 @@ Order - סדר הפריט בתוך הטופס
                     </TextBlock>
                 </DataTemplate>
             </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <DataGrid ItemsSource="{Binding Data.DefaultView}" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" />
+                </DataTemplate>
+            </TabControl.ContentTemplate>
         </TabControl>
 
     </util:AutoGrid>
