@@ -1,0 +1,61 @@
+﻿<Window x:Class="CrossjoinGenerator.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:CrossjoinGenerator"
+        xmlns:util="clr-namespace:Util;assembly=Util"
+        Title="HelpWindow" FlowDirection="RightToLeft">
+    <ScrollViewer>
+        <StackPanel>
+            <Expander Header="מבוא">
+                <TextBlock xml:space="preserve">
+תוכנה זו מייועדת לקחת קובץ Excel עם שמות תלמידים, כיתות, ופרטים להזמנה, וליצור גליון נוסף שבו ניתן לרשום כמה מכל פריט הוזמן עבור התלמיד לשנה הבאה.
+תהליך העבודה:
+1. בוחרים בקובץ Excel במבנה המתאים.
+2. עורכים בדיקות על תקינות מבנה הקובץ, ועל תקינות הנתונים
+3. יאם יש תקלה, יש לתקן את הקובץ בהתאם ולשמור
+4. לאחר ביצוע הבדיקות בהצלחה, יווצר הגליון החדש
+                </TextBlock>
+            </Expander>
+            <Expander Header="תאור הממשק">
+                <DockPanel>
+                    <Image Source="/images/UI help.png" Width="600" Height="386"/>
+                    <TextBlock xml:space="preserve">
+1. מיקום הקובץ הנבחר
+2. פעולות שונות:
+"צור תבנית" - יצירת קובץ ריק עם המבנה הנכון
+"בחר קובץ"
+"פתח קובץ לעריכה"
+"עיבוד קובץ" - בדיקת תקינות המבנה והנתונים, ויצירת הגליון החדש אם הכל תקין
+"עזרה"
+3. מד התקדמות. באזור זה יופיעו גם מידע על אזהרות (שבהן ניתן להשלים את התהליך) ושגיאות (שבהן לא ניתן להשלים).
+הצבע ישתנה בהתאם למצב התהליך:
+הצלחה - ירוק
+אזהרה - כתום
+שגיאה - אדום
+4. תצוגת נתונים לא תקינים. כל לשונית מציגה נתונים בעייתים מסיבה אחרת.
+                    </TextBlock>
+                </DockPanel>
+            
+            </Expander>
+            <Expander Header="מבנה קובץ ה-Excel">
+                <TextBlock xml:space="preserve">
+גליון בשם Grades המכיל את העמודות הבאות:
+CurrentGrade - הכיתה (א1, ד2 וכו')
+NewGrade - הכיתה אליו התלמיד עולה
+
+גליון בשם Students המכיל את העמודות הבאות:
+Name1 - שם משפחה
+Name2 - שם פרטי
+CurrentGrade - כיתה נוכחית (חייב להיות ערך מתוך העמודה CurrentGrade בדף Grades)
+
+גליון בשם Items המכיל את העמודות הבאות:
+NewGrade - הכיתה של שנה הבאה (חייב להיות ערך מתוך העמודה NewGrade בדף Grade)
+Item - תאור הפריט
+Price - מחיר
+Type - סוג
+Order - סדר הפריט בתוך הטופס
+                </TextBlock>
+            </Expander>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

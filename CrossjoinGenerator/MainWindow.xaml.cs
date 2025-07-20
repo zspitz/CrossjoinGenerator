@@ -1,8 +1,4 @@
-﻿using Ookii.Dialogs.Wpf;
-using System.Windows;
-using Util;
-using static CrossjoinGenerator.ExcelFunctions;
-using static CrossjoinGenerator.RecordsetFunctions;
+﻿using System.Windows;
 
 namespace CrossjoinGenerator;
 
@@ -17,5 +13,11 @@ public partial class MainWindow : Window {
             if (vm.ErrorMessage is null or "" or "...") { return; }
             MessageBox.Show(vm.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         };
+
+        helpButton.Click += (s, e) => {
+            var help = new HelpWindow();
+            help.ShowDialog();
+        };
     }
+
 }

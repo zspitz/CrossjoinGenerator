@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="images\UI help.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <COMReference Include="ADODB">
       <WrapperTool>tlbimp</WrapperTool>
       <VersionMinor>1</VersionMinor>
@@ -38,6 +42,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Util\Util.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="images\UI help.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
