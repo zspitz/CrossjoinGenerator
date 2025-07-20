@@ -41,7 +41,11 @@
         <StackPanel>
             <TextBlock Text="{Binding ProgressCaption}" />
             <ProgressBar Height="10" VerticalAlignment="Top" Maximum="{Binding MaxProgess}" Value="{Binding ProgressValue}" Foreground="{Binding ProcessState,Converter={StaticResource ProcessStateToBrushConverter}, ConverterParameter={x:Static Brushes.Green}}" />
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="{Binding ProcessState,Converter={StaticResource ProcessStateToBrushConverter}}" Name="errorMessage" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{Binding ProcessState,Converter={StaticResource ProcessStateToBrushConverter}}" Name="errorMessage">
+                <ToolTip>
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{Binding ProcessState,Converter={StaticResource ProcessStateToBrushConverter}}" />
+                </ToolTip>
+            </TextBlock>
         </StackPanel>
 
         <TabControl ItemsSource="{Binding DataChecks}">
