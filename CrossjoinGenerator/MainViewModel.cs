@@ -86,7 +86,7 @@ public class MainViewModel : ViewModelBase {
                 LEFT JOIN [Students$] AS Students ON Grades.CurrentGrade = Students.CurrentGrade
                 WHERE Students.CurrentGrade IS NULL
             ",
-            true
+            false
         ),
         new(
             "כתה ללא פריטים",
@@ -96,7 +96,7 @@ public class MainViewModel : ViewModelBase {
                 LEFT JOIN [Items$] AS Items ON Grades.NewGrade = Items.NewGrade
                 WHERE Items.NewGrade IS NULL
             ",
-            true
+            false
         ),
         new(
             "פריטים עם כיתה לא תקין",
@@ -173,6 +173,10 @@ public class MainViewModel : ViewModelBase {
             ProgressValue = 0;
             IsRunning = true;
 
+            foreach (var dc in DataChecks) {
+                dc.Data = new System.Data.DataTable();
+            }
+
             ProgressCaption = "בדיקות מבנה קובץ (1/3) ...";
             foreach (var (sql, message, caption) in sqlTests) {
                 try {
@@ -217,10 +221,13 @@ ORDER BY Students.CurrentGrade, Grades.NewGrade, Students.Name1, Students.Name2,
             ProgressCaption = "עיבוד נתונים (3/3) ...";
 
             var rst = GetRst(sqlFinal);
-            WriteFinal(rst, Filename);
+            var dtFinal = rst.ToDataTable();
             ReleaseRst(ref rst);
-            ProgressValue += 1;
 
+            Thread.Sleep(200);
+
+            WriteFinal2(dtFinal, Filename);
+            ProgressValue += 1;
             ProgressCaption = "הקובץ מוכן!";
 
         } catch (Exception ex) {

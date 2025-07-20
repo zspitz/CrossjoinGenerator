@@ -31,31 +31,37 @@ public static class RecordsetFunctions {
         }
         Marshal.ReleaseComObject(rst);
         rst = null!;
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        Thread.Sleep(100);
+    }
+
+    public static DataTable ToDataTable(this Recordset rs) {
+        var dt = new DataTable();
+        for (var i = 0; i < rs.Fields.Count; i++) {
+            var field = rs.Fields[i];
+            dt.Columns.Add(field.Name.Replace('.', '~'), typeof(object));
+        }
+
+        // Add rows
+        while (!rs.EOF) {
+            var row = dt.NewRow();
+            for (var i = 0; i < rs.Fields.Count; i++) {
+                row[i] = rs.Fields[i].Value;
+            }
+
+            dt.Rows.Add(row);
+            rs.MoveNext();
+        }
+
+        return dt;
     }
 
     public static Task<DataTable> GetDataTable(string sql) =>
         Task.Run(() => {
-            var dt = new DataTable();
             var rs = GetRst(sql);
-
-            for (var i = 0; i < rs.Fields.Count; i++) {
-                var field = rs.Fields[i];
-                dt.Columns.Add(field.Name.Replace('.', '~'), typeof(object));
-            }
-
-            // Add rows
-            while (!rs.EOF) {
-                var row = dt.NewRow();
-                for (var i = 0; i < rs.Fields.Count; i++) {
-                    row[i] = rs.Fields[i].Value;
-                }
-
-                dt.Rows.Add(row);
-                rs.MoveNext();
-            }
-
+            var dt = rs.ToDataTable();
             ReleaseRst(ref rs);
-
             return dt;
         });
 }

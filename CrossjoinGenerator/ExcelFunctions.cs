@@ -1,6 +1,5 @@
-﻿using ADODB;
+﻿using ClosedXML.Excel;
 using NetOffice.ExcelApi;
-using System.Diagnostics;
 using Util;
 
 namespace CrossjoinGenerator;
@@ -9,40 +8,39 @@ public static class ExcelFunctions {
         Visible = true,
         UserControl = true
     };
-    public static string WriteFinal(Recordset rst, string filename) {
-        using var excelApp = getApp();
 
-        Workbook book;
-        try {
-            book = excelApp.Workbooks.Open(filename);
-        } catch (Exception) {
-            return "Book not found";
+    public static void WriteFinal2(System.Data.DataTable dt, string filename) {
+        using var workbook = new XLWorkbook(filename);
+        if (workbook.TryGetWorksheet("Final", out var finalSheet)) {
+            finalSheet.Delete();
         }
 
-        Thread.Sleep(1000);
+        var sheet = workbook.AddWorksheet("Final", 1); // TODO is this position one-based or zero-based?
+        sheet.RightToLeft = true;
 
-        ((Worksheet)book.Worksheets[1]).Activate();
+        sheet.Cell(1, 1).InsertTable(dt, false);
 
-        var sheet = (Worksheet)book.Worksheets.Add();
-        sheet.DisplayRightToLeft = true;
-        sheet.Range("A1").CopyFromRecordset(rst);
-        rst.Close();
-        rst = null!;
-
-        sheet.Rows[1].Insert();
-        sheet.Range("A1:I1").Value = new object[,] {
-            {
-                "שם", "כיתה נוכחית", "כיתה חדשה", "סוג פריט", "סידורי", "פריט", "מחיר", "כמות", @"סה""כ"
-            }
+        var headers = new[] {
+            "שם", "כיתה נוכחית", "כיתה חדשה", "סוג פריט", "סידורי", "פריט", "מחיר", "כמות", @"סה""כ"
         };
-        var lastRow = sheet.UsedRange.Rows.Count;
-        sheet.Range($"I2:I{lastRow}").Formula = "=G2*H2";
+        for (var i = 0; i < headers.Length; i++) {
+            sheet.Cell(1, i + 1).Value = headers[i]; // TODO are cell references one-based or zero-based?
+        }
 
-        sheet.Columns["A:I"].AutoFit();
+        var lastRow = sheet.LastRowUsed()?.RowNumber() ?? 0;
+        for (var row = 2; row <= lastRow; row++) {
+            sheet.Cell(row, 8).Value = Blank.Value;
+            sheet.Cell(row, 9).FormulaA1 = $"=G{row}*H{row}";
+        }
 
-        sheet.Name = $"Final {DateTime.Now:yyyy-MM-dd HH-mm-ss}";
+        sheet.Columns(1, 9).AdjustToContents();
 
-        return "";
+        workbook.Save(new() {
+            EvaluateFormulasBeforeSaving = true,
+            ValidatePackage = true
+        });
+
+        OpenBook(filename);
     }
 
     public static void OpenBook(string filename) {
