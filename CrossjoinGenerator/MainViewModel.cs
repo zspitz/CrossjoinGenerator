@@ -1,4 +1,5 @@
 ﻿using Ookii.Dialogs.Wpf;
+using System.Data;
 using System.Windows;
 using Util;
 using static CrossjoinGenerator.ExcelFunctions;
@@ -60,7 +61,7 @@ public class MainViewModel : ViewModelBase {
         set => NotifyChanged(ref errorMessage, value);
     }
 
-    public double MaxProgess => sqlTests.Length + DataChecks.Count + 1;
+    public double MaxProgess => sqlTests.Length + DataChecks.Count + 2;
 
     public List<DataCheck> DataChecks { get; } = [
         new(
@@ -218,15 +219,19 @@ SELECT Students.Name1 & "" "" & Students.Name2, Students.CurrentGrade, Grades.Ne
 {sqlFrom}
 ORDER BY Students.CurrentGrade, Grades.NewGrade, Students.Name1, Students.Name2, Items.Order";
 
-            ProgressCaption = "עיבוד נתונים (3/3) ...";
+            ProgressCaption = "בניית טבלא סופית (3/3) ...";
 
-            var rst = GetRst(sqlFinal);
-            var dtFinal = rst.ToDataTable();
-            ReleaseRst(ref rst);
+            var dtFinal = await Task.Run(() => {
+                var rst = GetRst(sqlFinal);
+                var dt = rst.ToDataTable();
+                ReleaseRst(ref rst);
+                return dt;
+            });
+            ProgressValue += 1;
 
-            Thread.Sleep(200);
-
-            WriteFinal2(dtFinal, Filename);
+            await Task.Run(() => {
+                WriteFinal(dtFinal, Filename);
+            });
             ProgressValue += 1;
             ProgressCaption = "הקובץ מוכן!";
 

@@ -9,13 +9,13 @@ public static class ExcelFunctions {
         UserControl = true
     };
 
-    public static void WriteFinal2(System.Data.DataTable dt, string filename) {
+    public static void WriteFinal(System.Data.DataTable dt, string filename) {
         using var workbook = new XLWorkbook(filename);
         if (workbook.TryGetWorksheet("Final", out var finalSheet)) {
             finalSheet.Delete();
         }
 
-        var sheet = workbook.AddWorksheet("Final", 1); // TODO is this position one-based or zero-based?
+        var sheet = workbook.AddWorksheet("Final", 1);
         sheet.RightToLeft = true;
 
         sheet.Cell(1, 1).InsertTable(dt, false);
@@ -24,11 +24,12 @@ public static class ExcelFunctions {
             "שם", "כיתה נוכחית", "כיתה חדשה", "סוג פריט", "סידורי", "פריט", "מחיר", "כמות", @"סה""כ"
         };
         for (var i = 0; i < headers.Length; i++) {
-            sheet.Cell(1, i + 1).Value = headers[i]; // TODO are cell references one-based or zero-based?
+            sheet.Cell(1, i + 1).Value = headers[i];
         }
 
         var lastRow = sheet.LastRowUsed()?.RowNumber() ?? 0;
         for (var row = 2; row <= lastRow; row++) {
+            // We need to do this otherwise the result of the formula is #VALUE!
             sheet.Cell(row, 8).Value = Blank.Value;
             sheet.Cell(row, 9).FormulaA1 = $"=G{row}*H{row}";
         }
@@ -45,9 +46,7 @@ public static class ExcelFunctions {
 
     public static void OpenBook(string filename) {
         using var excelApp = getApp();
-        try {
-            excelApp.Workbooks.Open(filename, false, false);
-        } catch { }
+        excelApp.Workbooks.Open(filename, false, false);
     }
 
     public static readonly Dictionary<string, List<string>> BookStructure = new() {
@@ -57,6 +56,9 @@ public static class ExcelFunctions {
     };
 
     public static void GenerateTemplate() {
+        // We prefer to use NetOffice for this instead of ClosedXML
+        // This way, we can create an unsaved workbook in memory
+        // ClosedXML requires the file to be saved on disk
         using var excelApp = getApp();
         var book = excelApp.Workbooks.Add();
         BookStructure.ForEach((kvp, index) => {
