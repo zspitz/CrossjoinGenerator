@@ -77,7 +77,7 @@ public class MainViewModel : ViewModelBase {
                 LEFT JOIN [Grades$] AS Grades ON Students.CurrentGrade = Grades.CurrentGrade
                 WHERE Grades.CurrentGrade IS NULL
             ",
-            true
+            false
         ),
         new(
             "כיתה ללא תלמידים",
@@ -212,7 +212,13 @@ public class MainViewModel : ViewModelBase {
                 ProgressValue += 1;
             }
 
-            if (ProcessState == Error) { return; }
+            if (
+                ProcessState == Error || 
+                (
+                    ProcessState == Warning && 
+                    MessageBoxResult.No == MessageBox.Show("ישנם התראות. האם להמשיך?", "", MessageBoxButton.YesNo)
+                )
+            ) { return; }
 
             var sqlFinal = $@"
 SELECT Students.Name1 & "" "" & Students.Name2, Students.CurrentGrade, Grades.NewGrade, Items.Type, Items.Order, Items.Item, Items.Price, NULL AS Qty

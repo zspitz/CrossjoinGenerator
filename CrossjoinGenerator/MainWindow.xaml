@@ -42,9 +42,9 @@
             <TextBlock Text="{Binding ProgressCaption}" />
             <ProgressBar Height="10" VerticalAlignment="Top" Maximum="{Binding MaxProgess}" Value="{Binding ProgressValue}" Foreground="{Binding ProcessState,Converter={StaticResource ProcessStateToBrushConverter}, ConverterParameter={x:Static Brushes.Green}}" />
             <TextBlock Text="{Binding ErrorMessage}" Foreground="{Binding ProcessState,Converter={StaticResource ProcessStateToBrushConverter}}" Name="errorMessage">
-                <ToolTip>
+                <TextBlock.ToolTip>
                     <TextBlock Text="{Binding ErrorMessage}" Foreground="{Binding ProcessState,Converter={StaticResource ProcessStateToBrushConverter}}" />
-                </ToolTip>
+                </TextBlock.ToolTip>
             </TextBlock>
         </StackPanel>
 
